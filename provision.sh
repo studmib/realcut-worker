@@ -24,7 +24,9 @@ git -C "$R" checkout -q --detach FETCH_HEAD
 unset GIT_CONFIG_COUNT GIT_CONFIG_KEY_0 GIT_CONFIG_VALUE_0 auth
 echo "realcut code: $(git -C "$R" rev-parse --short HEAD)"
 
-REALCUT_ROLE=worker REALCUT_WORKSPACE=$W bash "$R/deploy/vast/setup.sh"
+# the base image runs this with its own /venv/main (Python 3.11) active: the system's 3.12 makes the venvs
+PY=$(command -v /usr/bin/python3.12 || command -v /usr/bin/python3)
+REALCUT_ROLE=worker REALCUT_WORKSPACE=$W REALCUT_PYTHON=$PY bash "$R/deploy/vast/setup.sh"
 
 # a worker without every model would fail each batch: fail the provisioning instead (vast marks it)
 missing=$(bash "$R/deploy/vast/download_models.sh" | grep -c "PC에서 올릴 파일\|실패" || true)
