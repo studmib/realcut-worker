@@ -56,8 +56,11 @@ if __name__ == "__main__":
             # one batch at a time (one GPU); a batch may wait up to 15 minutes behind the one running
             HandlerConfig(route="/make", allow_parallel_requests=False, max_queue_time=900.0,
                           workload_calculator=lambda payload: 100.0),
-            # the start-up benchmark runs here, not on /make (a real batch takes minutes)
-            HandlerConfig(route="/bench", allow_parallel_requests=False,
+            # the start-up benchmark runs here, not on /make (a real batch takes minutes). The job server answers
+            # /bench in 2 s; with workload 1 that rates a worker at ~0.5/s, so a batch (workload 100) counts as
+            # ~200 s of work, about what it takes. An instant benchmark rated it at ~50000/s and the autoscaler
+            # stopped a second worker as surplus while it was running a batch.
+            HandlerConfig(route="/bench", allow_parallel_requests=False, workload_calculator=lambda payload: 1.0,
                           benchmark_config=BenchmarkConfig(generator=lambda: {}, runs=1, concurrency=1,
                                                            do_warmup=False)),
         ],
